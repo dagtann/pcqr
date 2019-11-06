@@ -1,0 +1,241 @@
+---
+title: "Session 02. Data Management"
+output: html_notebook
+editor_options: 
+  chunk_output_type: inline
+---
+
+# Data Structures
+
+
+## Atomic vectors: Creation, Dimensionality, Homogeneity
+
+```{r}
+logic <- c(TRUE, FALSE, FALSE)
+typeof(logic)
+```
+
+```{r}
+int <- c(-1L, 99L)
+typeof(int)
+```
+
+```{r}
+# Explain the result
+dbl <- sqrt(8L)
+typeof(dbl)
+```
+
+```{r}
+# Explain the result
+chr <- c(TRUE, "Hello", 2.0, "R")
+typeof(chr)
+```
+
+
+## Atomic Vectors: Attributes
+
+```{r}
+die <- 1:6; length(die) # Check the length of an atomic vector
+```
+
+```{r}
+length(c(die, die)) # Will the length differ?
+```
+
+```{r}
+names(die) # Explain the output.
+```
+
+```{r}
+names(die) <- c("one", "two", "three", "four", "five", "six")
+die
+```
+
+```{r}
+die + 1  # Explain the result
+```
+
+```{r}
+names(die) <- NULL # Reset the attribute
+die
+```
+
+
+## Data Frames: Creation
+
+- **Creation**
+```{r}
+students <- data.frame(
+  first_name = c("Alex", "Jessy", "Barbara", "Jacob"),
+  student_id = c(349857, 796245, 143577, 987456),
+  passed = c(TRUE, TRUE, FALSE, FALSE),
+  stringsAsFactors = FALSE # Will be explained later
+)
+students
+```
+
+
+## Data Frames: Dimensionality, Homogeneity, Attributes
+
+Use str() to get a brief description of the data frame. By the way, RStudio reports the same information in the Environment pane.
+
+```{r}
+str(students)
+```
+
+The following code block demonstrates how you query the dimensions of a data frame.
+
+```{r}
+dim(students); nrow(students); ncol(students)
+```
+
+Here is how you query its name atributes.
+
+```{r}
+rownames(students); names(students) # also: colnames()
+```
+
+
+# R Notation
+
+In the following, we are going to explore *R*'s different indexing systems. Let's load some toy data first. Later, we are going to hone our data management skills on these data.
+
+```{r}
+student_data <- read.csv("./dta/student_data.csv", stringsAsFactors = FALSE)
+# read.csv() loads **comma**-separated flat files. By
+# default, Excel returns semi-colon separated csv files.
+# Use read.csv2 to read those into memory.
+head(student_data)
+```
+
+
+## Integers
+
+
+### Positive Integers
+
+Select the first row and column.
+```{r}
+student_data[ , ]
+```
+
+Select rows 1 through 5 & colums 1 through 3.
+
+```{r}
+student_data[ , ]
+```
+
+Try to explain the result. Could that feature be useful?
+```{r}
+student_data[0, 0]
+```
+
+
+### Negative Integers
+
+Deselect the first row and column.
+```{r}
+student_data[ , ]
+```
+
+Select rows 1 through 5 and drop columns 2 to 5.
+```{r }
+student_data[ , ] 
+```
+
+This statement returns an error. Explain why.
+```{r }
+student_data[-3:4, 1:2]
+```
+
+
+## Blanks
+
+Select the first row and all columns.
+
+```{r }
+student_data[ , ]
+```
+
+Select all rows from the second and fifth column.
+
+```{r }
+student_data[ , ] 
+```
+
+Return the entire data frame
+
+```{r }
+student_data[ , ]
+```
+
+
+## Logical Indexing
+
+Explain the result.
+
+```{r}
+student_data[FALSE , ]
+```
+
+Only select columns 1, 2, 6
+
+```{r}
+mask <- c( , , , , , )
+student_data[ , mask]
+```
+
+Execute the statement and explain the result.
+
+```{r}
+student_data[student_data[, 2] == 1, ]
+```
+
+
+## Names
+
+Select columns student and student_id.
+
+```{r}
+student_data[ , ]
+```
+
+Execute the statement and explain the error.
+
+```{r }
+student_data[ , "Student"] 
+```
+
+Execute the statement and explain the error. Can you come up with a working solution?
+
+```{r}
+student_data[ , -"student_id"]
+```
+
+
+## Dollar Signs & Double Brackets
+
+Return column arts.
+
+```{r}
+student_data$
+```
+
+Return the first five student ids.
+
+```{r}
+student_data$
+```
+
+Extract column gender.
+
+```{r}
+student_data[[ ]]
+```
+
+The following statement returns an error. Try to explain why.
+
+```{r}
+student_data[[c("student", "student_id")]]
+```

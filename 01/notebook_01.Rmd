@@ -1,0 +1,138 @@
+---
+title: "Session 01: The Very Basics"
+output: html_notebook
+editor_options: 
+  chunk_output_type: inline
+---
+
+# The Very Basics
+
+
+## Let's take *R* for a ride.
+
+Use *R* to answer the following problems. Remember:  **Strg+Enter** executes a chunk line, **Strg+Shift+Enter**
+executes the entire chunk. Your output will appear immediately below the chunk.
+
+```{r}
+# Add 2 and 2.
+
+```
+
+```{r}
+# Multiply -3 and 9.
+
+```
+
+```{r}
+# Find the cubic root of 8.
+
+```
+
+```{r}
+# Find the natural log of 1.
+
+```
+
+Finally, *R* ships with an extensive online documentation. For instance, it includes a manual named ``An Introduction to R''. Use the RStudio help pane and open that manual.
+
+
+## What is an object?
+
+*R* stores data in objects. When encountering an object, *R* returns the data saved inside. Think of objects as the nouns of the *R* language.
+
+```{r}
+a <- 1 # Assign value "1" to object "a".
+a # Retrieve the value of "a".
+```
+
+```{r}
+a + 2 # Retrieve the value of "a" and add "2" to it.
+```
+
+```{r}
+a <- 999; a # On reassignment R overwrites an object.
+```
+
+
+## The Rules of Assignment
+
+There are several valid assignement patterns.
+
+```{r}
+a <- 3 # Object <- Value
+a
+```
+
+```{r}
+9 -> a # Value -> Object
+a
+```
+
+
+## Naming Ojects
+
+- Rule 1: An object name cannot start with a number.
+- Rule 2: An object name cannot use certain special symbols,
+      e.g., ^, !, $, @, +, -, /, [, or reserved names, e.g., NA, NULL, etc.
+- Rule 3: Capitalization matters, i.e. A ≠ a.
+
+```{r }
+!d0 <- 1
+```
+
+```{r}
+FOO <- "bar"
+```
+
+```{r }
+1_day <- 1
+```
+
+```{r }
+day_1 <- TRUE
+```
+
+```{r }
+_day1 <- FALSE
+```
+
+```{r }
+day.1 <- "99"
+```
+
+```{r }
+day^1 <- 0
+```
+
+## How does *R* are operate on objects?
+
+Execute these commands and describe the result.
+
+```{r}
+die <- 1:6; die * die
+```
+
+```{r}
+die + 1:3
+```
+
+```{r}
+die %*% die
+```
+
+## What is a function?
+
+*R* uses functions to operate on data. Think of functions as the verbs of the *R* language. The data passed to a function is called its argument. Execute the following commands and describe the result.
+
+```{r, eval = FALSE}
+die <- 1:6; mean(die)
+```
+
+```{r}
+round(mean(1:6), digits = 2) 
+```
+
+```{r}
+round(mean(die), 2)
+```
+

@@ -1,0 +1,127 @@
+---
+title: "Session 03: Data Management Challenge"
+output: html_notebook
+editor_options:
+  chunk_output_type: inline
+---
+
+# Sequential Execution
+
+A script runs step by step from start to end (or any other condition is met).
+
+```{r}
+A <- "Well"
+B <- "hello there."
+paste(A, B, sep = ", ")
+rm(A, B, C) # Explain the error.
+```
+
+
+# Iterative Execution
+
+
+## for()-loops
+
+Execute statement(s) repeatedly over a set of values.
+
+```{r}
+for (value in c("Waiting", "for", "statistics.")) {
+  print(value)
+}
+```
+
+It is good practice to loop over a set of integers which indexes both object and storage simultaneously.
+
+```{r, eval = FALSE}
+words <- c("So", "how's", "looping", "so", "far?")
+chr <- vector("character", length = length(words))
+chr
+for (i in 1:length(words)){
+    cat("Iteration variable i is now:", i, "\n")
+    chr[i] <- words[i]
+}
+chr
+```
+
+
+## Exercise
+
+Create a for()-loop to replace your assign letter grades with a more concise statement. Use the quantile-based assignment rule below.
+
+Quantile | >=0 | >=.2 | >=.4 | >=.6 | >=.8
+Grade    |   F |    D |    C |    B |    A
+
+Answer the following questions first:
+
+1. What should we loop over?
+2. Where should we store results?
+
+```{r, eval = FALSE}
+set.seed(12345678)
+grades <- rnorm(38, 0, 1)  # 38 grades ~ N(0, 1)
+letter_grades <- vector("character", length(grades))
+Letters <- c("F", "D", "C", "B", "A")
+# non-standard notation -> try letters and LETTERS in the console
+```
+
+
+# Conditional Execution
+
+## if()-Statements
+
+A simple absolute value algorithm:
+
+```{r}
+x <- -4
+if (x < 0) {
+  x <- -1 * x
+}
+x
+```
+
+What will these statements return? Think first, check later.
+
+```{r}
+x <- 1
+if (TRUE) {
+  x <- 2
+}
+x
+```
+
+```{r}
+x <- 1
+if (x == 1) {
+  x <- 2
+  if (x == 1) {
+    x <- 3
+  }
+}
+```
+
+
+## else()-Statements
+
+Let's round π.
+
+```{r}
+dec <- pi
+if ((dec - trunc(dec)) >= 0.5) {
+  dec <- trunc(dec) + 1
+} else {
+  dec <- trunc(dec)
+}
+dec
+```
+
+
+# Practical Challenge
+
+Estimate π from the chance to hit a circle perfectly inscribed in a square with a randomly thrown dart. Your estimate will be $4 * p(Hit the circle)$. Here are some hints.
+
+- A circle is a shape consisting of **all points in a plane** that are **a given distance from a given point**. So, where is your origin and what's your radius?
+- By default, runif() samples from the unit interval [0, 1], but the unit is not necessarily what you want.
+- Did your dart land inside the circle? Use the Euclidian vector norm $\sqrt{\sum_{i=1}^{N}x_i^2}$ to find out.
+- The precision of your estimate increases with the number of darts
+you throw. Don't overshoot it though.
+- You know enough *R* to solve this problem in four lines of code!

@@ -1,0 +1,123 @@
+---
+title: "Warum R?"
+output: html_notebook
+editor_options: 
+  chunk_output_type: inline
+---
+
+
+# Einleitung
+
+Welches Pokémon ist am besten? Seit der Erstveröffentlichung des Spiels im Jahr 1996 stritten hundertausende Kinder und Jugendliche über diese zentrale Frage. Mittlerweile 21 Kinofilme und über 200 Millionen verkaufte Spiele befeuern die Debatte weiter.[^1] Die Verantwortung der Wissenschaft vor der Gesellschaft fordert zwingend unsere Intervention. Im Zuge dieses knappen Appetizers kommen wir unserer Verantwortung nach.
+
+Gleichzeitig erlernen wir wesentliche Handgriffe im Umgang mit sogenannten [R Markdown](http://rmarkdown.rstudio.com) Notebooks. Es handelt sich um interaktive Dokumente, die in einer stark vereinfachten Auszeichnungssprache verfasst werden. Sie verbinden Fließtext mit unabhängig und interaktiv ausführbaren Codeblöcken. Deren Output erscheint unmittelbar unter dem Codeblock. Diese Kombination ermöglicht es:
+
+1. direkt mit R zu interagieren,
+2. reproduzierbarer Dokumente anzufertigen,
+3. publikationsreifen Output zu generieren.
+
+[^1]: https://de.wikipedia.org/wiki/Pokémon, Zugriff:
+      31.10.2019.
+
+
+# Grundsätzliches zu Notebooks
+
+Die Tastenkombination **Strg+Shift+I** bzw. **Cmd+Shift+I** fügt einen neuen Codeblock ein. Alternativ öffnet der Klick auf ![](insert_button.png){width=60px} ein entsprechendes Menü mit weiteren Optionen. Eine einzelne (logische) Codezeile führt die Tastenkombination **Strg+Enter** bzw. **Cmd+Enter** aus. Den gesamten Codeblock übergibt man mit **Strg+Shift+Enter** bzw. **Cmd+Shift+Enter** an die Konsole. Den Status der Ausführung zeigt das Notebook durch einen farbigen Indikator am linken Rand an. Ein dunkles grün weist auf die laufende Zeile hin. Hell grüne Zeilen müssen noch ausgeführt werden. Fehler zeigt ein roter Indikator an. Führe nun den nachstehenden  Codeblock aus, um die weitere Analyse vorzubereiten.
+
+```{r, setup}
+rm(list = ls())
+packages <- c("tidyverse", "rvest", "ggimage")
+for (package in packages) {
+    if(!require(package, character.only = TRUE)) {
+        install.packages(package, repos = "https://cloud.r-project.org")
+        library(package, character.only = TRUE)
+    }
+}
+```
+
+
+# Datenerhebung mit R
+
+Wir benötigen zuverlässige und valide Daten, um die Frage zu beantworten, welches das stärkste Pokemon ist. Häufig stellen Enthusiasten passendes Material im Internet bereit. Auch in unserem Fall lässt es uns nicht im Stich. Die von Fans der Spielreihe betriebene [Bulbapedia](https://bulbapedia.bulbagarden.net/wiki) listet die zentralen Eigenschaftswerte aller bekannten Pokémon auf. Da die Wissenschaft auf der Höhe der Zeit operieren muss, interessieren wir uns insbesondere für die aktuellste Edition, d.h. die [Generation VII bis heute](https://bulbapedia.bulbagarden.net/wiki/List_of_Pokémon_by_base_stats_(Generation_VII-present)). Im nachstehenden Codeblock verwenden wir R, um die Daten von einer HTML-Tabelle in von R auswertbares Datenformat zu übertragen.
+
+```{r, data_collection}
+URL <- paste("https://bulbapedia.bulbagarden.net/wiki",
+             "List_of_Pokémon_by_base_stats_(Generation_VII-present)", sep = "/")
+COLUMN_NAMES <- c("id", "pokemon", "hp", "attack", "defense", "sp_attack",
+                  "sp_defense", "speed")
+
+bulbapedia_page <- URL %>% read_html()  # scrape webpage, load into memory
+
+pokemons <- bulbapedia_page %>%
+    html_nodes(css = "table") %>%  # Read all table elements from scraped page
+    `[[`(2) %>%  # Access the second table
+    html_table() %>%  # Transform to dataframe
+    select(-2, -10, -11)  # Drop redundant information
+names(pokemons) <- COLUMN_NAMES
+head(pokemons)
+```
+
+
+# Datenanalyse mit R
+
+Die insgesamt `r nrow(pokemons)` Pokémon unterscheiden sich teilweise dramatisch. Das belegt ein kurzer Blick auf die Kennwerte der Eigenschaftsverteilungen. Deren Spannweiten sind enorm und auch die Standardabweichungen weisen auf eine erhebliche Varianz der Verteilung hin. Wie sollen wir unter diesen Voraussetzungen das beste Pokémon finden?
+
+```{r, pokemon_summary}
+POKE_STATS <- COLUMN_NAMES[3:length(COLUMN_NAMES)]
+summarize_stat <- function(stat){  # User-defined summary function 
+    c("Mean" = mean(stat), "SD" = sd(stat), "Min" = min(stat), "Max" = max(stat))}
+apply(pokemons[, POKE_STATS], 2, FUN = summarize_stat)
+```
+
+Die Antwort auf die Frage nach dem besten Pokémon verlangt eine kluge Zusammenfassung der Daten. Allerdings verbindet Wissenschaft und junge Erwachsene an diesem Punkt eine fundamentale Theorielosigkeit. Der Streit über das beste Pokémon nimmt kein Ende, weil kein aus ersten Prinzipien abgeleitetes Konzept eines guten oder sogar besten Pokémons existiert. Im Gegensatz zu Heranwachsenden kann die Wissenschaft diesem Umstand mit regelbasierten Verfahren begegnen, zum Beispiel der Hauptkomponentenanalyse (engl. Principal Component Analysis, PCA). Dabei handelt es sich um eine Datenreduktionstechnik, deren Prinzip man folgendermaßen umschreiben kann: ![](banana_notebook.png)
+
+```{r, execute_pca}
+pca_fit <- prcomp(pokemons[, POKE_STATS], center = TRUE, scale = TRUE)  # PCA
+summary(pca_fit)  # Importance of components
+pca_fit  # Correlation of indicators with components
+yhat <- predict(pca_fit, newdata = pokemons)  # Predict component values
+pokemons <- data.frame(pokemons, yhat)  # Append component values to data
+```
+
+Werfen wir einen Blick auf die Verteilung der Pokémons auf der ersten Komponente.
+Berücksichtigt man ausschließlich diese Komponente, dann schneidet Kyogre am besten
+ab. Dieses Pokémon ist fast fünf Standardabweichungen vom Zentrum der Verteilung
+entfernt.
+
+```{r, show_pca1}
+ggplot(data = pokemons, aes(x = PC1, y = factor(0))) +
+  geom_point() +
+  geom_text(data = subset(pokemons, PC1 > 4), aes(label=pokemon), angle=90)
+```
+
+
+# Ergebnispräsentation mit R
+
+Selbstverständlich wollen wir unsere Erkenntnisse der Öffentlich möglichst klar präsentieren. Dafür fertigen wir eine deutlich einprägsamere Grafik an und legen den Dauerstreit *ad acta*.
+```{r, eval=FALSE, fig.height = 1.5, fig.width=4}
+REFERENCES <- c("Mewtwo", "Pikachu", "Magikarp", "Kyogre (Primal Kyogre)")
+images <- bulbapedia_page %>%  # Extract image URLs from scraped site
+    html_nodes(css = "table") %>%
+    html_nodes("span") %>%
+    html_nodes("a") %>%
+    html_nodes("img") %>%
+    html_attr("src") %>%
+    str_replace("//", "http://")
+pokemons <- cbind.data.frame(pokemons, images)
+reference_pokemons <- pokemons %> #
+    filter(pokemon %in% REFERENCES) %>%
+    mutate(pokemon = ifelse(pokemon == "Kyogre (Primal Kyogre)", "Primal\nKyogre",
+                            pokemon))
+
+ggplot(data = pokemons, aes(x = PC1, y = factor(0))) +
+  geom_point() +
+  geom_image(data = reference_pokemons, aes(image = images), size = .1) +
+  geom_text(data = reference_pokemons, aes(label = pokemon), angle = 0, nudge_y = -.25) +
+  annotate("text", x = -2.5, y = 1.25, label = "← Schwächer") +
+  annotate("text", x = 4, y = 1.25, label = "Stärker →") +
+  labs(title = "Verteilung der Pokémons auf der Primärachse") +
+  ggthemes::theme_fivethirtyeight() +
+  theme(
+    axis.line.y = element_blank(), axis.ticks.y=element_blank(),
+    axis.text.y = element_blank())
+```

@@ -1,0 +1,89 @@
+---
+title: "Session 02: Data Management Challenge"
+output: html_notebook
+editor_options:
+  chunk_output_type: inline
+---
+
+# Load The Data
+
+```{r}
+student_data <- read.csv("./dta/student_data.csv",
+    stringsAsFactors = FALSE)
+```
+
+# Part A
+
+Some grades are missing. Angela scored 603 in Science,
+and Cheryl 28 in Literature. Find and fill the gaps.
+
+```{r}
+student_data[ , ] <- 603
+student_data[ , ] <- 28
+```
+
+Joel withdrew from class. Remove him from the dataset.
+
+```{r}
+student_data <- student_data[ , ]
+```
+
+Gender was coded accidentally. Drop the variable.
+
+```{r}
+student_data <- student_data[ , ]
+```
+
+The grades are on widely different scales. **Scale** them to comparable units.
+
+```{r}
+tmp <- student_data[, c("science", "arts", "literature")]
+tmp <- ...(tmp)
+```
+
+# Part B
+
+Take the average of scaled science, arts, and literature grades for each student.
+
+```{r}
+grade <- ...
+student_data <- data.frame(student_data, grade = grade)
+rm(tmp, grade)
+```
+
+Find its .2, .4, .6, and .8 quantiles. Assign alphabetical grades.
+
+```{r}
+grade_quantiles <- ...(student_data[, "grade"], ... = c(.2,.4,.6,.8))
+# Hint:
+# A: grade > .8
+# B: .8 <= grade & grade > .6
+# C: .6 <= grade & grade > .4
+# D: .4 <= grade & grade > .2
+# F: grade < .2
+student_data[..., "grade_alp"] <- "F"
+student_data[..., "grade_alp"] <- "D"
+student_data[..., "grade_alp"] <- "C"
+student_data[..., "grade_alp"] <- "B"
+student_data[..., "grade_alp"] <- "A"
+```
+
+Greg was caught cheating. He should receive an F.
+
+```{r}
+student_data[..., "grade_alp"] <- ...
+```
+
+Create a new data frame grade_data. This data frame should:
+
+- include only student_id and the final grade;
+- be ordered by student_id.
+
+```{r}
+office_list <- student_data[ , ]
+office_list <- student_data[...(student_data[["student_id"]]), ]
+# ATTENTION: Do not fall for sort()!
+office_list
+```
+
+Congratulations! That wasn't exactly easy.
