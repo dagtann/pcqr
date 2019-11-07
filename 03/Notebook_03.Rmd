@@ -125,3 +125,15 @@ Estimate π from the chance to hit a circle perfectly inscribed in a square with
 - The precision of your estimate increases with the number of darts
 you throw. Don't overshoot it though.
 - You know enough *R* to solve this problem in four lines of code!
+
+# Sample solution
+
+The following chunk repeats our inclass solution. The code contains a semantic error. In other words, it does not return what we expect. Can you spot and fix the error? Hint: Try different parameter settings.
+
+```{r}
+r <- 1; n <- 10000; hits <- vector("logical", length = n)
+for (i in seq(n)) {
+  hits[i] <- sqrt(sum(runif(2, -r, r) ^ 2)) <= 1
+}
+4 * mean(hits)
+```
