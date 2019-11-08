@@ -1,7 +1,7 @@
 ---
 title: "Warum R?"
 output: html_notebook
-editor_options: 
+editor_options:
   chunk_output_type: inline
 ---
 
@@ -26,7 +26,7 @@ Die Tastenkombination **Strg+Shift+I** bzw. **Cmd+Shift+I** fügt einen neuen Co
 
 ```{r, setup}
 rm(list = ls())
-packages <- c("tidyverse", "rvest", "ggimage")
+packages <- c("tidyverse", "rvest", "ggimage", "ggthemes")
 for (package in packages) {
     if(!require(package, character.only = TRUE)) {
         install.packages(package, repos = "https://cloud.r-project.org")
@@ -64,8 +64,9 @@ Die insgesamt `r nrow(pokemons)` Pokémon unterscheiden sich teilweise dramatisc
 
 ```{r, pokemon_summary}
 POKE_STATS <- COLUMN_NAMES[3:length(COLUMN_NAMES)]
-summarize_stat <- function(stat){  # User-defined summary function 
-    c("Mean" = mean(stat), "SD" = sd(stat), "Min" = min(stat), "Max" = max(stat))}
+summarize_stat <- function(stat){  # User-defined summary function
+    c("Mean" = mean(stat), "SD" = sd(stat), "Min" = min(stat), "Max" = max(stat))
+}
 apply(pokemons[, POKE_STATS], 2, FUN = summarize_stat)
 ```
 
@@ -94,6 +95,7 @@ ggplot(data = pokemons, aes(x = PC1, y = factor(0))) +
 # Ergebnispräsentation mit R
 
 Selbstverständlich wollen wir unsere Erkenntnisse der Öffentlich möglichst klar präsentieren. Dafür fertigen wir eine deutlich einprägsamere Grafik an und legen den Dauerstreit *ad acta*.
+
 ```{r, eval=FALSE, fig.height = 1.5, fig.width=4}
 REFERENCES <- c("Mewtwo", "Pikachu", "Magikarp", "Kyogre (Primal Kyogre)")
 images <- bulbapedia_page %>%  # Extract image URLs from scraped site
@@ -104,7 +106,7 @@ images <- bulbapedia_page %>%  # Extract image URLs from scraped site
     html_attr("src") %>%
     str_replace("//", "http://")
 pokemons <- cbind.data.frame(pokemons, images)
-reference_pokemons <- pokemons %> #
+reference_pokemons <- pokemons %>%
     filter(pokemon %in% REFERENCES) %>%
     mutate(pokemon = ifelse(pokemon == "Kyogre (Primal Kyogre)", "Primal\nKyogre",
                             pokemon))

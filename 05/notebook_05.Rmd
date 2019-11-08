@@ -1,0 +1,231 @@
+---
+title: "Session 5. Basic Statistics"
+output: html_notebook
+editor_options:
+  chunk_output_type: inline
+---
+
+```{r, setup}
+packages <- c("tidyverse")
+for (package in packages){
+    if (!require(package, character.only = TRUE)) {
+        install.packages(package, repos = "https://cloud.r-project.org")
+        library(package, character.only = TRUE)
+    }
+}
+rm(package, packages)
+asoiaf <- read.csv2("./dta/asoiaf.csv", stringsAsFactors = FALSE)
+head(asoiaf)
+```
+
+# Many Values
+
+## Central Tendency and Spread
+
+Execute each of the following commands. Explain the output. Set na.rm to FALSE. What happens?
+
+```{r, eval = FALSE}
+mean(asoiaf[, "age_in_chapters"], na.rm = TRUE)
+```
+
+```{r}
+sd(asoiaf[, "age_in_chapters"], na.rm = TRUE)
+```
+
+```{r}
+quantile(asoiaf[, "age_in_chapters"],
+  probs = c(0, .01, .05, .25, .5, .75, .9, .95, 1),
+  na.rm = TRUE
+)
+```
+
+```{r}
+summary(asoiaf[, "age_in_chapters"])
+```
+
+## Graphical Exploratory Data Analysis
+
+ggplot2 offers numerous exploratory graphs.[^2] Create
+each of the graphs below. What do they return?
+
+```{r, eval = FALSE}
+p <- ggplot(data = asoiaf, aes(x = age_in_chapters))
+```
+
+```{r}
+p + geom_histogram()
+```
+
+```{r}
+p + geom_density() + labs(y = "PDF")
+```
+
+```{r}
+p + stat_ecdf() + labs(y = "CDF")
+```
+
+```{r}
+p + geom_boxplot(aes(x = 0, y = age_in_chapters))
+```
+
+```{r}
+ggplot(data = asoiaf, aes(sample = age_in_chapters)) +
+  geom_qq() + geom_qq_line()
+```
+
+## Grouping Values
+
+We regularly decrease the granularity of many-valued variables in some controlled fashion. Frequently, we calculate grouped statistics to that end. On other occasions, we discretize continous variables. The following chunks demonstrate how to do either.
+
+Use aggregate() to return single value statistics by group.
+
+```{r}
+mu_age_by_allegiance <- aggregate(
+  x = asoiaf[, "age_in_chapters"],
+  by = list(allegiances = asoiaf[, "allegiances"]),
+  FUN = mean, na.rm = TRUE
+)
+mu_age_by_allegiance
+```
+
+Use cut(), or even better: Hmisc::cut2() to discretize continuous variables in different ways.
+
+```{r}
+tmp <- cut(x = asoiaf[, "age_in_chapters"], breaks = 5)
+# generate <breaks> pieces of equal length
+summary(tmp) # Do you notice anything weird?
+```
+
+The number of observations differs across categories. We can supply
+quantile values to avoid such skewed discretization of numerical data.
+
+```{r}
+tmp <- cut(x = asoiaf[, "age_in_chapters"],
+  breaks = quantile(
+    asoiaf[, "age_in_chapters"], na.rm = TRUE
+  ), # vector of values at which to cut x.
+  include.lowest = FALSE
+)
+summary(tmp) # Notice something weird?
+```
+
+
+# Few Values
+
+## What are factors?
+
+```{r, results=FALSE}
+grades <- c("A", "B", "B", "C")
+grades <- factor(grades,
+  levels = c("C", "B", "A"), # state ALL values
+  labels = c("C", "B", "A"), # name EACH value
+  ordered = TRUE # defaults to FALSE (nominal data)
+)
+grades
+```
+
+```{r}
+typeof(grades)
+```
+
+```{r}
+attributes(grades)
+```
+
+Factors are a neat and memory-efficient way to store categorical data. Be careful
+when working with factors, though because they can behave in unexpected ways.
+
+Under the hood, integers represent individual factor levels.
+```{r}
+as.numeric(grades)
+```
+
+However, we use their string labels to operate on factors.
+```{r}
+grades > "C" # will work fine
+```
+
+```{r}
+grades > 1 # will generally not work
+```
+
+
+## Simple N-way Contingency Tables
+
+```{r}
+table(asoiaf[, "gender"]) # single 1way table
+```
+
+```{r}
+apply( # Multiple 1way tables
+  asoiaf[, c("gender", "nobility")], 2, table
+)
+```
+
+```{r}
+table( # Create a Bivariate Table
+    "Book of Death" = asoiaf[, "book_of_death"], # Naming is optional, but helpful
+    "Nobility" = asoiaf[, "nobility"]
+)
+```
+
+```{r}
+mytable <- table(
+  "gender" = asoiaf[, 'gender'],
+  "nobility" = asoiaf[, 'nobility']
+)
+prop.table(mytable)
+# Add argument margin = {1; 2}. What happens?
+addmargins(mytable)
+# Add argument margin = {1; 2}. What happens?
+```
+
+
+# Adventures in Association
+
+```{r}
+mytable <- table(
+  "gender" = asoiaf[, 'gender'],
+  "nobility" = asoiaf[, 'nobility']
+)
+```
+
+```{r}
+fit <- chisq.test(mytable); fit # Chi-Square Test
+```
+
+```{r}
+fit <- fisher.test(mytable); fit # Fisher's Exact Test
+```
+
+
+## Correlation Analysis
+
+```{r}
+# a. Explain the code and plot. ---------------------
+ggplot(data = asoiaf,
+  aes(x = chapter_of_intro, y = chapter_of_death)
+) + geom_point() +
+  geom_smooth(aes(col = "loess"), method = "loess") +
+  geom_smooth(aes(col = "ols"), method = "lm")
+```
+
+```{r}
+# b. Correlation Analysis ---------------------------
+cor(x = asoiaf[, c(6, 8)],
+  use = "complete.obs", # What does <use> do?
+  method = "pearson" # {pearson; kendall; spearman}
+) # Now try cor.test() on your own.
+```
+
+## Mean Comparison Tests
+
+- Question: Do two groups come from the same population?
+- In ASOIAF: Do nobles survive longer than other social strata?
+
+```{r, eval = FALSE}
+t.test( # Alternative: mu_0 < mu_1
+  age_in_chapters ~ nobility, data = asoiaf,
+  alternative = "less" # "greater" for mu_0 > mu_1
+)
+```

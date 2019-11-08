@@ -128,7 +128,7 @@ you throw. Don't overshoot it though.
 
 # Sample solution
 
-The following chunk repeats our inclass solution. The code contains a semantic error. In other words, it does not return what we expect. Can you spot and fix the error? Hint: Try different parameter settings.
+The following chunk repeats our in-class solution. We have built in a semantic error. In other words, this does code not (always) return what we expect. Can you spot and fix the error? Hint: Try different parameter settings.
 
 ```{r}
 r <- 1; n <- 10000; hits <- vector("logical", length = n)

@@ -1,0 +1,115 @@
+---
+title: "Session 6. (G)LMs"
+output: html_notebook
+editor_options:
+  chunk_output_type: inline
+---
+
+```{r}
+packages <- c("tidyverse")
+for (package in packages){
+    if (!require(package, character.only = TRUE)) {
+        install.packages(package, repos = "https://cloud.r-project.org")
+        library(package, character.only = TRUE)
+    }
+}
+rm(package, packages)
+asoiaf <- ...("./06/dta/asoiaf.csv", ...)
+head(asoiaf)
+asoiaf[, "is_dead"] <- !is.na(asoiaf[, "book_of_death"])
+```
+
+**Exercise** How would you write the following formulas?[^1]
+
+1. $y = a + x + z + xz$
+2. $y = a + x + x^2 + x^3$
+3. $log_{10}(y) = x + z + w + xz + xw + wz$
+4. $y$ as a function of variables in the data but $k$
+
+[^1]: Assume $a$ is the constant.
+
+
+## Get Your Hands Dirty
+
+Now it's your turn. Use the **asoiaf** data to
+
+- regress **is_dead** on
+- **allegiances**,
+- the full interaction of **gender** and **nobility**, and
+- a cubic polynomial on **age_in_chapters**.
+- Save the results to an object called **myfit**.
+
+```{r}
+myfit <- ...(
+  formula = ...,
+  data = asoiaf
+)
+```
+
+# Working With Results
+
+## Generic Sequence
+
+1. Define scenarios to predict
+2. Create a date frame which contains those scenarios
+3. Use predict() to return quantities of interest
+4. Summarize the results
+
+
+## Example: How does the chance to die change over time?
+
+```{r}
+# Steps 1 & 2 Prediction scenarios
+pred_dta <- data.frame(
+  allegiances = "Baratheon",
+  gender = mean(asoiaf$gender),
+  nobility = mean(asoiaf$nobility),
+  age_in_chapters = 1:343, stringsAsFactors = FALSE
+)
+head(pred_dta)
+```
+
+```{r}
+# Step 3 Predict
+pred_dta[, "fitted"] <- predict(myfit, newdata = pred_dta)
+head(pred_dta)
+```
+
+```{r}
+# Step 4 Summarize
+ggplot(data = pred_dta,
+  aes(x = age_in_chapters, y = fitted)) + geom_line()
+```
+
+
+# Generalized Linear Models
+
+```{r}
+myfit <- ...(
+  formula = is_dead ~ 0 + allegiances +
+    gender * nobility +
+    age_in_chapters + I(age_in_chapters^2) +
+    I(age_in_chapters^3),
+  family = ...,
+  data = asoiaf
+)
+```
+
+## Is Jon Snow going to die?
+
+```{r}
+jon_snow <- which(asoiaf$name == "Jon Snow")
+pred_dta <- asoiaf[rep(jon_snow, 3), ]; rm(jon_snow)
+pred_dta[2, "allegiances"] <- "Stark"
+pred_dta[3, "allegiances"] <- "Targaryen"
+pred_dta[, "fitted"] <- predict(
+  myfit, newdata = pred_dta, type = "response"
+)
+pred_dta[, "fitted"]
+```
+
+# Regression Diagnostics
+
+```{r, eval = FALSE}
+plot(myfit)
+```
